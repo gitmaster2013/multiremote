@@ -3,7 +3,7 @@
 % Your language, here German
 \usepackage[ngerman]{babel} 
 % Will work with Umlauts
-\usepackage[latin1]{inputenc}
+\usepackage[applemac]{inputenc}
 % Euro characters etc.
 \usepackage{textcomp}
 % Works perfectly with latin1
@@ -54,7 +54,24 @@
 % Include the PDF files, scaling as required
 \includepdf{Arduino-Projekt-Overview.pdf}
 
-\section{Aufgabe 1}
-	\mylisting[language=C]{../code/InfraredProxy/InfraredProxy.ino}
+\section{SD Karte}
+
+Problem: Fehler: Initialisierung der SD-Karte fehlgeschlagen!
+
+Lösung: SD Karte komplett entfernen, SD Karte einstecken, 3s lang den REST Button drücken
+
+
+\section{Code}
+	\mylisting[language=C]{../code/IR_Proxy/IR_Proxy.ino}
+\newpage
+\section{Beispiele}
+\subsection{InfraredDumper.ino}
+	\mylisting[language=C]{../example/InfraredDumper/InfraredDumper.ino}
+\newpage
+\subsection{InfraredProxy.ino}
+	\mylisting[language=C]{../example/InfraredProxy/InfraredProxy.ino}
+%\subsection{SDWebServer.ino}
+%	\mylisting[language=C]{../example/SDWebServer/SDWebServer.ino}
+	
 
 \end{document}
