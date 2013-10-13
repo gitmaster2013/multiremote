@@ -1,16 +1,12 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <IRremote.h>
-
 // ### Voraussetzungen ###
 // TSOP Signal-Pin <--> Arduino - Pin 11
-
-
-
+// IR-LED Anode <--> Arduino - Pin 3
 class InfraredProxy
 {
     IRsend _infrared_sender;
-
     void read_line(EthernetClient& client, char* buffer, const int buffer_length)
     {
         int buffer_pos = 0;
@@ -24,7 +20,6 @@ class InfraredProxy
         }
         buffer[buffer_pos] = '\0';                                                        
     }
-
     bool send_ir_data(const char* protocol, const int bits, const long value)
     {
         bool result = true;
@@ -40,12 +35,10 @@ class InfraredProxy
             result = false;
         return result;
     }
-
     bool handle_command(char* line)
     {
         strsep(&line, " ");
         char* path = strsep(&line, " ");
-
         char* args[3];
         for (char** ap = args; (*ap = strsep(&path, "/")) != NULL;)
             if (**ap != '\0')
@@ -55,9 +48,7 @@ class InfraredProxy
         const long value = atol(args[2]);
         return send_ir_data(args[0], bits, value);
     }
-
 public:
-
     void receive_from_server(EthernetServer server)
     {
         const int MAX_LINE = 256;
@@ -85,17 +76,13 @@ public:
         }
     }
 };
-
-
 //--- ENDE DER DEKLARATION ---
-
 const unsigned int PROXY_PORT = 80;
 const unsigned int BAUD_RATE = 19200;
-byte mac[] = { 0x90, 0xA2, 0xDA, 0x00, 0x9C, 0x27 };
+byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE }; // MAC Arduino Ethernet (David)
 byte ip[] = { 192, 168, 3, 100 };
 EthernetServer server(PROXY_PORT);
 InfraredProxy ir_proxy;
-
 void setup()
 {
 // Open serial communications and wait for port to open:
@@ -104,15 +91,12 @@ void setup()
     {
         ; // wait for serial port to connect. Needed for Leonardo only
     }
-
-
     // start the Ethernet connection and the server:
     Ethernet.begin(mac);
     server.begin();
     Serial.print("server is at ");
     Serial.println(Ethernet.localIP());
 }
-
 void loop()
 {
     ir_proxy.receive_from_server(server);
