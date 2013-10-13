@@ -74,21 +74,15 @@ void receive_from_server(EthernetServer server) {
 //--- ENDE DER DEKLARATION ---
 
 const unsigned int PROXY_PORT = 80;
-const unsigned int BAUD_RATE = 19200;
-byte mac[] = { 0x90, 0xA2, 0xDA, 0x00, 0x9C, 0x27 };
-byte ip[] = { 192, 168, 3, 100 };
+const unsigned int BAUD_RATE = 115200;
+byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE }; // MAC Arduino Ethernet (David)
 EthernetServer server(PROXY_PORT);
 InfraredProxy ir_proxy;
 
 void setup() {
- // Open serial communications and wait for port to open:
-  Serial.begin(BAUD_RATE);
-   while (!Serial) {
-    ; // wait for serial port to connect. Needed for Leonardo only
-  }
-
-
-  // start the Ethernet connection and the server:
+// Open serial communications and wait for port to open:
+  Serial.begin(115200);
+// start the Ethernet connection and the server:
   Ethernet.begin(mac);
   server.begin();
   Serial.print("server is at ");
