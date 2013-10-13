@@ -1,0 +1,58 @@
+\documentclass[10pt]{article}
+
+% Your language, here German
+\usepackage[ngerman]{babel} 
+% Will work with Umlauts
+\usepackage[latin1]{inputenc}
+% Euro characters etc.
+\usepackage{textcomp}
+% Works perfectly with latin1
+\usepackage{listings}
+
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
+
+% Set Page Size
+\usepackage[a4paper]{geometry}
+
+% Support for PDF inclusion
+\usepackage[final]{pdfpages}
+
+% Support for PDF scaling
+\usepackage{graphicx}
+
+
+\lstset{% Default options for all algorithm listings read
+  %labelstep=5,
+  %frame=trbl,
+  %indent=15pt,
+  %indent=12pt,
+  breaklines=true,
+  numbers=left,
+  numberstyle=\tiny,
+  showlines=false,
+  showstringspaces=false,
+  stepnumber=2,
+  stringstyle=\itshape,
+  commentstyle=\color{red},
+  keywordstyle=\bfseries\color{blue},
+  %basicstyle=\ttfamily\footnotesize
+}
+\geometry{a4paper, portrait, left=1.5cm, right=1cm, top=2cm, bottom=2cm}
+\newcommand{\mylisting}[2][]{%
+    \lstinputlisting[caption={\texttt{\detokenize{#2}}},#1]{#2}%
+}
+
+
+\begin{document}
+
+% Globals: include all pages, don't auto scale
+\includepdfset{pages=-,noautoscale}
+
+% Include the PDF files, scaling as required
+\includepdf{Arduino-Projekt-Overview.pdf}
+
+\section{Aufgabe 1}
+	\mylisting[language=C]{../code/InfraredProxy.ino}
+
+\end{document}
