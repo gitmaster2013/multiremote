@@ -54,11 +54,12 @@ class ControlProxy
         return send_ir_data(args[0], bits, value);
     }
 public:
-    void receive_from_server(EthernetServer server, File webFile)
+    void receive_from_server(EthernetServer server)
     {
         const int MAX_LINE = 256;
         char line[MAX_LINE];
         EthernetClient client = server.available();
+        File webFile;                                       // Datei mit HTML-Inhalt
         if (client)
         {
             while (client.connected())
@@ -101,21 +102,40 @@ const unsigned int PROXY_PORT = 80;
 const unsigned int BAUD_RATE = 19200;
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE }; // MAC Arduino Ethernet (David)
 byte ip[] = { 192, 168, 3, 100 };
+byte sdPin = 4;                                      // Pin der SD-Karte
 EthernetServer server(PROXY_PORT);
-File webFile;                                       // Datei mit HTML-Inhalt
 ControlProxy ir_proxy;
 void setup()
-{
+{ 
 // Open serial communications and wait for port to open:
-    Serial.begin(BAUD_RATE);
-    // start the Ethernet connection and the server:
-    Ethernet.begin(mac);
-    server.begin();
-    Serial.print("server is at ");
+  Serial.begin(BAUD_RATE);
+// start the Ethernet connection and the server:
+  Ethernet.begin(mac);
+    Serial.print("Server is at: ");
     Serial.println(Ethernet.localIP());
+  server.begin();          // Server starten
+  
+  Serial.println("ARDUINO - STEUERUNG");
+  Serial.println("Initialisiere SD-Karte...");
+  if (!SD.begin(sdPin)) 
+  {
+    Serial.println(" - Initialisierung der SD-Karte fehlgeschlagen!");
+    return;
+  }
+  Serial.println(" - SD-Karte erfolgreich initialisiert.");
+ 
+  if (!SD.exists("sd.htm")) 
+  {
+    Serial.println(" - Datei (sd.htm) wurde nicht gefunden!");
+    return;
+  }
+  Serial.println(" - Datei (sd.htm) wurde gefunden.");
+ 
+  Serial.println();
+  Serial.println("Verbraucher schalten");
 }
 void loop()
 {
-    ir_proxy.receive_from_server(server, webFile);
+    ir_proxy.receive_from_server(server);
 }
 
