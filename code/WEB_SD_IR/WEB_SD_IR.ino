@@ -54,7 +54,7 @@ class ControlProxy
         return send_ir_data(args[0], bits, value);
     }
 public:
-    void receive_from_server(EthernetServer server)
+    void receive_from_server(EthernetServer server, File webFile)
     {
         const int MAX_LINE = 256;
         char line[MAX_LINE];
@@ -71,7 +71,22 @@ public:
                         handle_command(line);
                     if (!strcmp(line, ""))
                     {
-                        client.println("HTTP/1.1 200 OK\n");
+                        // Standard HTTP Header senden
+                        client.println("HTTP/1.1 200 OK");
+                        client.println("Content-Type: text/html");
+                        client.println("Connection: close");
+                        client.println();
+ 
+                        // Website von SD-Karte laden
+                        webFile = SD.open("sd.htm");  // Website laden
+                        if (webFile)
+                        {
+                          while(webFile.available())
+                          {
+                            client.write(webFile.read()); // Website an Client schicken
+                          }
+                          webFile.close();
+                        }
                         break;
                     }
                 }
@@ -87,6 +102,7 @@ const unsigned int BAUD_RATE = 19200;
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE }; // MAC Arduino Ethernet (David)
 byte ip[] = { 192, 168, 3, 100 };
 EthernetServer server(PROXY_PORT);
+File webFile;                                       // Datei mit HTML-Inhalt
 ControlProxy ir_proxy;
 void setup()
 {
@@ -100,6 +116,6 @@ void setup()
 }
 void loop()
 {
-    ir_proxy.receive_from_server(server);
+    ir_proxy.receive_from_server(server, webFile);
 }
 
