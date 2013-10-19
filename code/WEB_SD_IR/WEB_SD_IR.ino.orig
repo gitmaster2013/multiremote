@@ -12,6 +12,7 @@
 class ControlProxy
 {
     IRsend _infrared_sender;
+
     void read_line(EthernetClient& client, char* buffer, const int buffer_length)
     {
         int buffer_pos = 0;
@@ -23,7 +24,7 @@ class ControlProxy
             if (c!='\r')
                 buffer[buffer_pos++] = c;
         }
-        buffer[buffer_pos] = '\0';                                                        
+        buffer[buffer_pos] = '\0';
     }
     bool send_ir_data(const char* protocol, const int bits, const long value)
     {
@@ -72,7 +73,21 @@ public:
                     if (!strcmp(line, ""))
                     {
                         client.println("HTTP/1.1 200 OK\n");
-                        break;
+                        client.println("Content-Type: text/html");
+          client.println("Connection: close");
+          client.println();
+ 
+          // Website von SD-Karte laden
+          webFile = SD.open("sd.htm");  // Website laden
+          if (webFile)
+          {
+            while(webFile.available())
+            {
+              client.write(webFile.read()); // Website an Client schicken
+            }
+            webFile.close();
+          }
+          break;
                     }
                 }
             }
@@ -87,6 +102,9 @@ const unsigned int BAUD_RATE = 19200;
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE }; // MAC Arduino Ethernet (David)
 byte ip[] = { 192, 168, 3, 100 };
 EthernetServer server(PROXY_PORT);
+byte sdPin = 4;                                      // Pin der SD-Karte
+File webFile;
+
 ControlProxy ir_proxy;
 void setup()
 {
@@ -94,9 +112,27 @@ void setup()
     Serial.begin(BAUD_RATE);
     // start the Ethernet connection and the server:
     Ethernet.begin(mac);
-    server.begin();
+    server.begin();                                  // Server starten
     Serial.print("server is at ");
     Serial.println(Ethernet.localIP());
+    Serial.println("ARDUINO - STEUERUNG");
+    Serial.println("Initialisiere SD-Karte...");
+    if (!SD.begin(sdPin))
+    {
+        Serial.println(" - Initialisierung der SD-Karte fehlgeschlagen!");
+        return;
+    }
+    Serial.println(" - SD-Karte erfolgreich initialisiert.");
+
+    if (!SD.exists("sd.htm"))
+    {
+        Serial.println(" - Datei (sd.htm) wurde nicht gefunden!");
+        return;
+    }
+    Serial.println(" - Datei (sd.htm) wurde gefunden.");
+
+    Serial.println();
+    Serial.println("Bereit zum Senden");
 }
 void loop()
 {
