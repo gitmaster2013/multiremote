@@ -1,9 +1,10 @@
 // http://fluuux.de/2013/03/arduino-als-webserver-einrichten-und-webpage-von-sd-karte-laden/
 
+#include <SPI.h>
 #include <Ethernet.h>
+#include <IRremote.h>
 #include <TextFinder.h>
 #include <SD.h>
-#include <IRremote.h>
 
 // ### Voraussetzungen ###
 // TSOP Signal-Pin <--> Arduino - Pin 11
@@ -14,48 +15,54 @@ class AppleRemote
 {
     enum
     {
-        CMD_LEN = 32,
-        UP = 0x77E1D01D,
-        DOWN = 0x77E1B01D,
-        PLAY = 0x77E1201D,
-        PREV = 0x77E1101D,
-        NEXT = 0x77E1E01D,
-        MENU = 0x77E1401D
+      CMD_LEN = 32,
+      UP = 0x77E1D01D,
+      DOWN = 0x77E1B01D,
+      PLAY = 0x77E1201D,
+      PREV = 0x77E1101D,
+      NEXT = 0x77E1E01D,
+      MENU = 0x77E1401D
     };
-
-    IRsend mac;
-
-    void send_command(const long command)
+    
+  IRsend mac;
+  
+  void send_command(const long command) { 
+    mac.sendNEC(command, CMD_LEN);
+  }
+    
+    
+    
+    bool handle_command(char* line)
     {
-        mac.sendNEC(command, CMD_LEN);
+        strsep(&line, " ");
+        char* path = strsep(&line, " ");
+        char* args[3];
+        for (char** ap = args; (*ap = strsep(&path, "?")) != NULL;)
+            if (**ap != '\0')
+                if (++ap >= &args[3])
+                    break;
+        const int bits = atoi(args[1]);
+        const long value = atol(args[2]);
+        return send_ir_data(args[0], bits, value);
     }
-
+    
 public:
-    void menu()
+    bool send_ir_data(const char* protocol, const int bits, const long value)
     {
-        send_command(MENU);
+        bool result = true;
+        if (!strcasecmp(protocol, "NEC"))
+            mac.sendNEC(value, bits);
+        else if (!strcasecmp(protocol, "SONY"))
+            mac.sendSony(value, bits);
+        else if (!strcasecmp(protocol, "RC5"))
+            mac.sendRC5(value, bits);
+        else if (!strcasecmp(protocol, "RC6"))
+            mac.sendRC6(value, bits);
+        else
+            result = false;
+        return result;
     }
-    void play()
-    {
-        send_command(PLAY);
-    }
-    void prev()
-    {
-        send_command(PREV);
-    }
-    void next()
-    {
-        send_command(NEXT);
-    }
-    void up()
-    {
-        send_command(UP);
-    }
-    void down()
-    {
-        send_command(DOWN);
-    }
-};
+    };
 
 AppleRemote apple_remote;
 
@@ -65,6 +72,8 @@ byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE };
 	// MAC Arduino Ethernet (David)
 byte sdPin = 4;
 	// Pin der SD-Karte
+const int MAX_LINE = 256;
+char line[MAX_LINE];
 
 EthernetServer server(PROXY_PORT);
 	// Server port
@@ -90,12 +99,12 @@ void setup()
     }
     Serial.println(" - SD-Karte erfolgreich initialisiert.");
 
-    if (!SD.exists("aprm.htm"))
+    if (!SD.exists("aprm2.htm"))
     {
-        Serial.println(" - Datei (aprm.htm) wurde nicht gefunden!");
+        Serial.println(" - Datei (aprm2.htm) wurde nicht gefunden!");
         return;
     }
-    Serial.println(" - Datei (aprm.htm) wurde gefunden.");
+    Serial.println(" - Datei (aprm2.htm) wurde gefunden.");
 
     Serial.println();
     Serial.println("Verbraucher schalten");
@@ -117,32 +126,11 @@ void loop()
         {
             while(finder.findUntil("cmd-", "\n\r"))
             {
-                char befehl = client.read();
-                Serial.print(" - D"+String(befehl));
-                switch(befehl)
-                {
-                case 'm':
-                    apple_remote.menu();
-                    break;
-                case 'u':
-                    apple_remote.up();
-                    break;
-                case 'd':
-                    apple_remote.down();
-                    break;
-                case 'l':
-                    apple_remote.prev();
-                    break;
-                case 'r':
-                    apple_remote.next();
-                    break;
-                case 'p':
-                    apple_remote.play();
-                    break;
-                default:
-                    Serial.print(" - Falscher Befehl");
-                    break;
-                }
+              //String prot = client.read();
+             // int  bits = finder.getValue();
+            //  int  value = finder.getValue();  
+           //   send_ir_data(prot, bits, value);
+             Serial.println("CMD-");
             }
         }
 
@@ -157,6 +145,7 @@ void loop()
             if (client.available())
             	// Wenn Daten vom Server empfangen werden
             {
+                read_line(client, line, MAX_LINE);
                 char c = client.read();
                 	// empfangene Zeichen einlesen
                 if (c == '\n' && current_line_is_blank)
@@ -168,7 +157,7 @@ void loop()
                     client.println("Connection: close");
                     client.println();
                     // Website von SD-Karte laden
-                    webFile = SD.open("aprm.htm");
+                    webFile = SD.open("aprm2.htm");
                     	// Website laden
                     if (webFile)
                     {
@@ -195,4 +184,19 @@ void loop()
         client.stop();
     }
 }
+
+IRsend _infrared_sender;
+    void read_line(EthernetClient& client, char* buffer, const int buffer_length)
+    {
+        int buffer_pos = 0;
+        while (client.available() && (buffer_pos < buffer_length - 1))
+        {
+            const char c = client.read();
+            if (c=='\n')
+                break;
+            if (c!='\r')
+                buffer[buffer_pos++] = c;
+        }
+        buffer[buffer_pos] = '\0';                                                        
+    }
 
