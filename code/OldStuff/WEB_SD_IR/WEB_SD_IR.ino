@@ -1,41 +1,86 @@
 // http://fluuux.de/2013/03/arduino-als-webserver-einrichten-und-webpage-von-sd-karte-laden/
-#if ARDUINO > 18
-#include <SPI.h> // Für Arduino Version größer als 0018
-#endif
+
 #include <Ethernet.h>
 #include <TextFinder.h>
 #include <SD.h>
+#include <IRremote.h>
 
 // ### Voraussetzungen ###
 // TSOP Signal-Pin <--> Arduino - Pin 11
 // IR-LED Anode <--> Arduino - Pin 3
 // Test-LED <--> Arduino - Pin 6
 
+class AppleRemote
+{
+    enum
+    {
+        CMD_LEN = 32,
+        UP = 0x77E1D01D,
+        DOWN = 0x77E1B01D,
+        PLAY = 0x77E1201D,
+        PREV = 0x77E1101D,
+        NEXT = 0x77E1E01D,
+        MENU = 0x77E1401D
+    };
+
+    IRsend mac;
+
+    void send_command(const long command)
+    {
+        mac.sendNEC(command, CMD_LEN);
+    }
+
+public:
+    void menu()
+    {
+        send_command(MENU);
+    }
+    void play()
+    {
+        send_command(PLAY);
+    }
+    void prev()
+    {
+        send_command(PREV);
+    }
+    void next()
+    {
+        send_command(NEXT);
+    }
+    void up()
+    {
+        send_command(UP);
+    }
+    void down()
+    {
+        send_command(DOWN);
+    }
+};
+
+AppleRemote apple_remote;
+
 const unsigned int PROXY_PORT = 80;
 const unsigned int BAUD_RATE = 19200;
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE };
-// MAC Arduino Ethernet (David)
-pinMode(10, OUTPUT);
-// make sure that the default chip select pin is set to
-// output, even if you don't use it:
+	// MAC Arduino Ethernet (David)
 byte sdPin = 4;
-// Pin der SD-Karte
+	// Pin der SD-Karte
 
 EthernetServer server(PROXY_PORT);
-// Server port
+	// Server port
 
 File webFile;
 
 void setup()
 {
     Serial.begin(BAUD_RATE);
-    // Open serial communications and wait for port to open:
+    	// Open serial communications and wait for port to open:
     Ethernet.begin(mac);
-    // start the Ethernet connection and the server:
+    	// start the Ethernet connection and the server:
     Serial.print("Server is at: ");
     Serial.println(Ethernet.localIP());
     server.begin();
-    // Server starten
+    	// Server starten
     Serial.println("ARDUINO - STEUERUNG");
     Serial.println("Initialisiere SD-Karte...");
     if (!SD.begin(sdPin))
@@ -45,12 +90,12 @@ void setup()
     }
     Serial.println(" - SD-Karte erfolgreich initialisiert.");
 
-    if (!SD.exists("sd.htm"))
+    if (!SD.exists("aprm.htm"))
     {
-        Serial.println(" - Datei (sd.htm) wurde nicht gefunden!");
+        Serial.println(" - Datei (aprm.htm) wurde nicht gefunden!");
         return;
     }
-    Serial.println(" - Datei (sd.htm) wurde gefunden.");
+    Serial.println(" - Datei (aprm.htm) wurde gefunden.");
 
     Serial.println();
     Serial.println("Verbraucher schalten");
@@ -59,71 +104,78 @@ void setup()
 void loop()
 {
     EthernetClient client = server.available();
-    // Auf Anfrage warten
+    	// Auf Anfrage warten
 
     if(client)
     {
         /*****************************************
-          Ausgänge über das Webformular steuern  *
+          Ausgaenge ueber das Webformular steuern  *
         *****************************************/
         TextFinder finder(client);
 
         if(finder.find("GET"))
         {
-            while(finder.findUntil("pin", "\n\r"))
+            while(finder.findUntil("cmd-", "\n\r"))
             {
-                char typ = client.read();
-                int  pin = finder.getValue();
-                int  val = finder.getValue();
-
-                if(typ == 'D')
+                char befehl = client.read();
+                Serial.print(" - D"+String(befehl));
+                switch(befehl)
                 {
-                    pinMode(pin, OUTPUT);
-                    digitalWrite(pin, val);
-                    Serial.print(" - D"+String(pin));
+                case 'm':
+                    apple_remote.menu();
+                    break;
+                case 'u':
+                    apple_remote.up();
+                    break;
+                case 'd':
+                    apple_remote.down();
+                    break;
+                case 'l':
+                    apple_remote.prev();
+                    break;
+                case 'r':
+                    apple_remote.next();
+                    break;
+                case 'p':
+                    apple_remote.play();
+                    break;
+                default:
+                    Serial.print(" - Falscher Befehl");
+                    break;
                 }
-                else if(typ == 'A')
-                {
-                    analogWrite(pin, val);
-                    Serial.print(" - A"+String(pin));
-                }
-                else Serial.print(" - Falscher Typ");
-
-                if(val==1) Serial.println(" ein");
-                else Serial.println(" aus");
             }
         }
 
         /************************
           Webformular anzeigen  *
         ************************/
+    
         boolean current_line_is_blank = true;
-        // eine HTTP-Anfrage endet mit einer Leerzeile und einer neuen Zeile
-
+			// eine HTTP-Anfrage endet mit einer Leerzeile und einer neuen Zeile
         while (client.connected())
         {
             if (client.available())
-                // Wenn Daten vom Server empfangen werden
+            	// Wenn Daten vom Server empfangen werden
             {
                 char c = client.read();
-                // empfangene Zeichen einlesen
+                	// empfangene Zeichen einlesen
                 if (c == '\n' && current_line_is_blank)
-                    // wenn neue Zeile und Leerzeile empfangen
+                	// wenn neue Zeile und Leerzeile empfangen
                 {
                     // Standard HTTP Header senden
                     client.println("HTTP/1.1 200 OK");
-                    client.println("Content-Type: text/html");
+                    client.println("Content-type: text/html");
                     client.println("Connection: close");
                     client.println();
-
-                    webFile = SD.open("sd.htm");
                     // Website von SD-Karte laden
+                    webFile = SD.open("aprm.htm");
+                    	// Website laden
                     if (webFile)
                     {
                         while(webFile.available())
                         {
                             client.write(webFile.read());
-                            // Website an Client schicken
+                            	// Website an Client schicken
                         }
                         webFile.close();
                     }
@@ -143,3 +195,4 @@ void loop()
         client.stop();
     }
 }
+

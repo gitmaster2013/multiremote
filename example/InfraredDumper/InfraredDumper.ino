@@ -1,6 +1,6 @@
 #include <IRremote.h>
 
-const unsigned int IR_RECEIVER_PIN = 11;
+const unsigned int IR_RECEIVER_PIN = 9;
 const unsigned int BAUD_RATE = 19200;
 
 IRrecv ir_receiver(IR_RECEIVER_PIN);
@@ -52,5 +52,5 @@ void loop()
 	{
                 dump(&results);
                 ir_receiver.resume();
-    }
+        }
 }

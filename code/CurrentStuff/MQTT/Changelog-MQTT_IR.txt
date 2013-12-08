@@ -1,0 +1,55 @@
+MQTT_IR_1:
+	- Relay MQTT command
+	- decode IR-signal
+	- Publish "TEST" when receiving IR-signal
+MQTT_IR_2:
+	NEW:
+	- Publish received IR-signal
+	FEATURE:
+	- Relay MQTT command
+	- decode IR-signal
+	- Publish received IR-signal
+	BUG:
+	- incorrect output
+MQTT_IR_3:
+	BUG-FIX:
+	- incorrect output
+	NEW:
+	- handlecommand function
+		- print "COMMAND" on console
+	FEATURE:
+	- Relay MQTT command
+	- decode IR-signal
+	- Publish received IR-signal
+MQTT_IR_4:
+	NEW:
+	- send IR-Commands!
+	BUG:
+	- Publish received IR-signal doesn't work anymore
+	FEATURE:
+	- Relay MQTT command
+	- decode IR-signal
+	- Publish received IR-signal
+	- send IR-Commands!
+MQTT_IR_5:
+	BUG-FIX:
+	- Publish received IR-signal doesn't work anymore
+	BUG:
+	- IR-CODE ein Zeichen zu kurz
+	FEATURE:
+	- Relay MQTT command
+	- decode IR-signal
+	- Publish received IR-signal
+	- send IR-Commands!
+MQTT_IR_6:
+	BUG-FIX:
+	- IR-CODE ein Zeichen zu kurz
+	BUG:
+	- Sobald einmal ein Befehl gesendet wurde (CE) funktioniert das Empfangen (CR) nicht mehr
+	FEATURE:
+	- Relay MQTT command
+	- decode IR-signal
+	- Publish received IR-signal
+	- send IR-Commands!
+
+	

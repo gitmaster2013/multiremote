@@ -54,12 +54,34 @@
 % Include the PDF files, scaling as required
 \includepdf{Arduino-Projekt-Overview.pdf}
 
-\section{SD Karte}
+\section{Troubleshoting}
 
-Problem: Fehler: Initialisierung der SD-Karte fehlgeschlagen!
+\begin{itemize}
+\item Fehler: Initialisierung der SD-Karte fehlgeschlagen!
+\subitem Ursache: Die SD Karte ist nach dem Laden eines neuen Sketches noch initialisiert. Ein normaler Reset reicht scheinbar nicht aus.
 
-Loesung: SD Karte komplett entfernen, SD Karte einstecken, 3s lang den REST Button druecken
+\subitem Loesung: SD Karte komplett entfernen, SD Karte einstecken, 3s lang den REST Button druecken
 
+\item Symptom: Keine Ausgabe auf der Konsole.
+\subitem Fehler:  Arduino bekommt keine IP (vermutlich)
+\subitem Loesung:
+\begin{itemize}
+	\item Konsole schliessen
+	\item Arduino von USB und NW trennen
+	\item NW anschliessen
+	\item USB anschliessen
+	\item Arduino reseten
+	\item Konsole oeffnen
+\end{itemize}
+\end{itemize}
+
+Important Note!
+
+If an uninitialized SD card is left in the SD card socket of the shield, it can cause problems with code in the sketch that is accessing the Ethernet chip. This may cause symptoms such as the sketch running once or twice, then hanging up.
+
+This is because both the Ethernet chip and the SD card are accessed by the Arduino using the same SPI bus.
+
+If the SD card is not being used with an Ethernet application, either remove it from the socket or add the following code to disable the SD card:
 
 \section{Code}
 \subsection{WEB\_SD\_IR.ino}

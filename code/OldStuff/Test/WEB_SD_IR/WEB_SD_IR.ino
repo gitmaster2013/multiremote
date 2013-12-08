@@ -42,10 +42,10 @@ class ControlProxy
     }
     bool handle_command(char* line)
     {
-        strsep(&line, " ");
-        char* path = strsep(&line, " ");
+        strsep(&line, "/");
+        char* path = strsep(&line, "/");
         char* args[3];
-        for (char** ap = args; (*ap = strsep(&path, "/")) != NULL;)
+        for (char** ap = args; (*ap = strsep(&path, "?")) != NULL;)
             if (**ap != '\0')
                 if (++ap >= &args[3])
                     break;
@@ -102,3 +102,4 @@ void loop()
 {
     ir_proxy.receive_from_server(server);
 }
+

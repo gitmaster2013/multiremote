@@ -5,6 +5,7 @@
 #include <Ethernet.h>
 #include <TextFinder.h>
 #include <SD.h>
+#include <IRremote.h>
 
 // ### Voraussetzungen ###
 // TSOP Signal-Pin <--> Arduino - Pin 11
@@ -15,7 +16,6 @@ const unsigned int PROXY_PORT = 80;
 const unsigned int BAUD_RATE = 19200;
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE };
 // MAC Arduino Ethernet (David)
-pinMode(10, OUTPUT);
 // make sure that the default chip select pin is set to
 // output, even if you don't use it:
 byte sdPin = 4;
