@@ -51,5 +51,9 @@ MQTT_IR_6:
 	- decode IR-signal
 	- Publish received IR-signal
 	- send IR-Commands!
+MQTT_IR_7:
+	- Wie 6 nur über test.mosquitto.org
+	MQTT_IR_7_1:
+	- Wie 7 nur mit Lichtwechselerfassung per LDR
 
 	

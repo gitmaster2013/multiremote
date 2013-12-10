@@ -4,6 +4,9 @@
 #include <IRremote.h>
 #include <String.h>
 
+int LDR_Pin = A0; //analog pin 0
+long previousMillis = 0;
+int iLightState = LOW;
 
 const unsigned int IR_RECEIVER_PIN = 9;
 const unsigned int BAUD_RATE = 19200;
@@ -33,27 +36,28 @@ EthernetClient ethClient;
 PubSubClient client(server, 1883, callback, ethClient);
 
 // Callback function
-void callback(char* topic, byte* payload, unsigned int length) {
-  // In order to republish this payload, a copy must be made
-  // as the orignal payload buffer will be overwritten whilst
-  // constructing the PUBLISH packet.
-  
-  // Allocate the correct amount of memory for the payload copy
-  byte* p = (byte*)malloc(length);
-  // Copy the payload to the new buffer
-  memcpy(p,payload,length);
-  client.publish(OUTTOPIC, p, length);
-  handle_command(p,length);
-  // Free the memory
-  free(p);
+void callback(char* topic, byte* payload, unsigned int length)
+{
+    // In order to republish this payload, a copy must be made
+    // as the orignal payload buffer will be overwritten whilst
+    // constructing the PUBLISH packet.
+
+    // Allocate the correct amount of memory for the payload copy
+    byte* p = (byte*)malloc(length);
+    // Copy the payload to the new buffer
+    memcpy(p,payload,length);
+    client.publish(OUTTOPIC, p, length);
+    handle_command(p,length);
+    // Free the memory
+    free(p);
 }
 
 void setup()
 {
-  Serial.begin(BAUD_RATE);
-  ir_receiver.enableIRIn();
-  Ethernet.begin(mac);
-  Serial.print("server is at ") ;
+    Serial.begin(BAUD_RATE);
+    ir_receiver.enableIRIn();
+    Ethernet.begin(mac);
+    Serial.print("server is at ") ;
     Serial.println(Ethernet.localIP()) ;
     int connRC = client.connect(CLIENTID) ;
     if (connRC)
@@ -73,50 +77,63 @@ void setup()
 
 String dump(const decode_results* results)
 {
-        const int protocol = results->decode_type;
-        String message;
-        
-	//Serial.print("Protocol: ");
-	if (protocol == UNKNOWN)
-	{
-	Serial.println("not recognized.");
-	}
-	else
-	{
-		message +="CR/?0001?0001?";
-                if (protocol == NEC)
-		{
-            	        message +="NEC";
-		}
-		else if (protocol == SONY)
-		{
-			message +="SONY";
-		}
-		else if (protocol == RC5)
-		{
-			message +="RC5";
-		}
-		else if (protocol == RC6)
-		{
-			message +="RC6";
-		}
-                message +="?";
-                message += results->bits;
-                message +="?";
-                message += results->value;
-	}
-        Serial.println(message);
-        return (message);
+    const int protocol = results->decode_type;
+    String message;
+
+    //Serial.print("Protocol: ");
+    if (protocol == UNKNOWN)
+    {
+        Serial.println("not recognized.");
+    }
+    else
+    {
+        message +="CR/?0001?0001?";
+        if (protocol == NEC)
+        {
+            message +="NEC";
+        }
+        else if (protocol == SONY)
+        {
+            message +="SONY";
+        }
+        else if (protocol == RC5)
+        {
+            message +="RC5";
+        }
+        else if (protocol == RC6)
+        {
+            message +="RC6";
+        }
+        message +="?";
+        message += results->bits;
+        message +="?";
+        message += results->value;
+    }
+    Serial.println(message);
+    return (message);
 }
 
 void handle_command(byte* bCmd, int length)
 {
     String sCmd;
+    String sLDR;
     // (5 gibt die Anzahl der Parameter an)
     Serial.print("COMMAND: ");
     for (int i=0; i < length; i++)
     {
-       sCmd += char(bCmd[i]) ;
+        sCmd += char(bCmd[i]) ;
+    }
+    // LDR
+    if(sCmd=="CE/LDR")
+    {
+        int LDRReading = analogRead(LDR_Pin);
+        Serial.print("LDR: ");
+        Serial.println(LDRReading);
+        sLDR = "LDR: ";
+        sLDR += String(LDRReading);
+        char cLDR[sLDR.length()];
+        sLDR.toCharArray(cLDR, sLDR.length());
+        client.publish(OUTTOPIC, cLDR);
     }
     char cCmd[sCmd.length()+1];
     sCmd.toCharArray(cCmd, sCmd.length()+1);
@@ -124,8 +141,8 @@ void handle_command(byte* bCmd, int length)
     char* line = cCmd;
     strsep(&line, "/"); //Pointer von "/"
     char* path = strsep(&line, "/");  // Beginn von path auf das erste "/"
-    // Das erste Zeichen des zu parsenden Strings ist das nach dem entfernten "/" 
-    
+    // Das erste Zeichen des zu parsenden Strings ist das nach dem entfernten "/"
+
     char* args[5];
     // (5 gibt die Anzahl der Parameter an)
     for (char** ap = args; (*ap = strsep(&path, "?")) != NULL;)
@@ -155,7 +172,7 @@ void handle_command(byte* bCmd, int length)
     Serial.println(value);
     // DEBUG: Alle Parameter werden auf der Konsole ausgegeben
     switch(typ)
-    // Unterscheidung der Protokolle
+        // Unterscheidung der Protokolle
     {
     case 1:
     {
@@ -182,20 +199,57 @@ void handle_command(byte* bCmd, int length)
     }
     break;
     }
-}   
+}
 
 void loop()
 {
-	if (ir_receiver.decode(&results))
-	{
-                txt += dump(&results);
-                ir_receiver.resume();
-                char ssid[txt.length()];
-                txt.toCharArray(ssid, txt.length());
-                client.publish(OUTTOPIC,ssid);
-                Serial.println(txt);
-                txt = ""; 
+    //LDR
+    unsigned long currentMillis = millis();
+    int LDRReading = analogRead(LDR_Pin);
+    String sLDR;
+  //  if(currentMillis - previousMillis > 5000)
+  //  {
+        // save the last time LDR been updated
+        previousMillis = currentMillis;
+        int LDRReading = analogRead(LDR_Pin);
+        Serial.print("LDR: ");
+        Serial.println(LDRReading);
+        if(LDRReading >= 70 && iLightState == LOW)
+        {
+          //sLDR = "Light: ON (";
+          iLightState = HIGH;
+                  sLDR += String(LDRReading);
+        sLDR += ")";
+        char cLDR[sLDR.length()+1];
+        sLDR.toCharArray(cLDR, sLDR.length()+1);
+        client.publish(OUTTOPIC, cLDR);
+        client.publish("MD/LIGHT", cLDR);
+        sLDR ="";
         }
-        client.loop();
+        if(LDRReading <= 70 && iLightState == HIGH)
+        {
+          //sLDR = "Light: OFF (";
+          iLightState = LOW;
+                            sLDR += String(LDRReading);
+        sLDR += ")";
+        char cLDR[sLDR.length()+1];
+        sLDR.toCharArray(cLDR, sLDR.length()+1);
+        client.publish(OUTTOPIC, cLDR);
+        client.publish("MD/LIGHT", cLDR);
+        sLDR ="";
+        }
+        
+    //}
+    if (ir_receiver.decode(&results))
+    {
+        txt += dump(&results);
+        ir_receiver.resume();
+        char ssid[txt.length()];
+        txt.toCharArray(ssid, txt.length());
+        client.publish(OUTTOPIC,ssid);
+        Serial.println(txt);
+        txt = "";
+    }
+    client.loop();
 }
 
