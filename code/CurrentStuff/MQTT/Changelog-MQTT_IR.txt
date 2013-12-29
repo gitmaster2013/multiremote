@@ -55,5 +55,17 @@ MQTT_IR_7:
 	- Wie 6 nur über test.mosquitto.org
 	MQTT_IR_7_1:
 	- Wie 7 nur mit Lichtwechselerfassung per LDR
-
+MQTT_IR_8:
+	INFO:
+	- MQTT-Server ist david.dyndns.ultrachaos.de
+	BUG:
+	- Sobald einmal ein Befehl gesendet wurde (CE) funktioniert das Empfangen (CR) nicht mehr
+	- IR-CODE ein Zeichen zu kurz (NEC 32-Bit Teufel)
+	FEATURE:
+	- Relay MQTT command
+	- decode IR-signal
+	- Publish received IR-signal
+	- send IR-Commands!
+	- DNS-Name instead of static IP
+	- Send IR-Commands via http://david.dyndns.ultrachaos.de
 	
