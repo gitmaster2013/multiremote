@@ -59,6 +59,7 @@ MQTT_IR_8:
 	INFO:
 	- MQTT-Server ist david.dyndns.ultrachaos.de
 	BUG:
+        - DNS wird nur beim Start aufgelöst --> Neustart erforderlich sobald sich die IP des Servers ändert
 	- Sobald einmal ein Befehl gesendet wurde (CE) funktioniert das Empfangen (CR) nicht mehr
 	- IR-CODE ein Zeichen zu kurz (NEC 32-Bit Teufel)
 	FEATURE:
@@ -66,6 +67,7 @@ MQTT_IR_8:
 	- decode IR-signal
 	- Publish received IR-signal
 	- send IR-Commands!
+	- Lichtwechselerfassung per LDR
 	- DNS-Name instead of static IP
 	- Send IR-Commands via http://david.dyndns.ultrachaos.de
 	
