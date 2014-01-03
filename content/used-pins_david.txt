@@ -1,0 +1,5 @@
+A0 - LDR
+~3 - IR-LED
+~5 - Schalter(0/5)V
+7 - Debug LED
+~9 - TSOP
