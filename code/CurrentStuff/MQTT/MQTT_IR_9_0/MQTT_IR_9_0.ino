@@ -1,43 +1,47 @@
+//** INCLUDES
 #include <SPI.h>
 #include <Ethernet.h>
 #include <PubSubClient.h>
 #include <IRremote.h>
 #include <String.h>
+#include <RCSwitch.h>
 
-// set pin numbers:
-const int buttonPin = 5;     // the number of the pushbutton pin
-const int ledPin =  7;      // the number of the LED pin
-int LDR_Pin = A0; //analog pin 0
-long previousMillis = 0;
-int iLightState = LOW;
-int buttonState = 0;
-
-const unsigned int IR_RECEIVER_PIN = 9;
-const unsigned int BAUD_RATE = 19200;
-
-IRrecv ir_receiver(IR_RECEIVER_PIN);
-decode_results results;
-
-IRsend irsender;
-
-String txt;
-
-// Update these with values suitable for your network.
-byte mac[]    = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE };
-
-//MQTT definition
+//** DEFINES
+// PIN-DEFINES
+#define BUTTONPIN 5     	// the number of the pushbutton pin
+#define LEDPIN 7      		// the number of the LED pin
+#define LDRPIN A0 			//analog pin 0
+#define IRRECEIVERPIN 9
+// MQTT-DEFINES
 #define MQTTSERVER "loki"
 #define CLIENTID "MDArduino"
-#define INTOPIC "MDinTopic"
+#define INTOPIC "soll/schlafzimmer-david/arduino/#"
 #define OUTTOPIC "MDoutTopic"
+// SERIAL-DEFINES
+#define BAUDRATE 19200
 
+//** GLOBALS
+// Ethernet
+byte mac[]    = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE };	// Update these with values suitable for your network.
+// used vars
+long previousMillis = 0;
+bool bLightState = LOW;
+bool bButtonState = LOW;
+int LDRReading;
+String txt;
 
-// Callback function header
-void callback(char* topic, byte* payload, unsigned int length);
-
+//** INSTANCES
+// Open IR-instances
+IRrecv ir_receiver(IRRECEIVERPIN);
+decode_results results;
+IRsend irsender;
+// Open ethernet-instance
 EthernetClient ethClient;
+// Open MQTT-instance
+void callback(char* topic, byte* payload, unsigned int length);	// Callback function header
 PubSubClient client(MQTTSERVER, 1883, callback, ethClient);
 
+//** FUNCTIONS
 // Callback function
 void callback(char* topic, byte* payload, unsigned int length)
 {
@@ -55,33 +59,6 @@ void callback(char* topic, byte* payload, unsigned int length)
     free(p);
 }
 
-void setup()
-{
-    // initialize the LED pin as an output:
-    pinMode(ledPin, OUTPUT);      
-    // initialize the pushbutton pin as an input:
-    pinMode(buttonPin, INPUT);   
-    Serial.begin(BAUD_RATE);
-    ir_receiver.enableIRIn();
-    Ethernet.begin(mac);
-    Serial.print("server is at ") ;
-    Serial.println(Ethernet.localIP()) ;
-    int connRC = client.connect(CLIENTID) ;
-    if (connRC)
-    {
-        client.publish(OUTTOPIC,"Hi I am the new Arduino!");
-        Serial.print("Arduino published a message to: ") ;
-        Serial.println(OUTTOPIC) ;
-        client.subscribe(INTOPIC) ;
-        Serial.print("Arduino subscribed to: ") ;
-        Serial.println(INTOPIC) ;
-    }
-    else
-    {
-        Serial.println(connRC) ;
-    }
-}
-
 String dump(const decode_results* results)
 {
     const int protocol = results->decode_type;
@@ -94,7 +71,7 @@ String dump(const decode_results* results)
     }
     else
     {
-        message +="CR/?0001?0001?";
+        message += "CR/?0001?0001?";
         if (protocol == NEC)
         {
             message +="NEC";
@@ -111,9 +88,9 @@ String dump(const decode_results* results)
         {
             message +="RC6";
         }
-        message +="?";
+        message +="-";
         message += results->bits;
-        message +="?";
+        message +="-";
         message += results->value;
     }
     Serial.println(message);
@@ -133,7 +110,7 @@ void handle_command(byte* bCmd, int length)
     // LDR
     if(sCmd=="CE/LDR")
     {
-        int LDRReading = analogRead(LDR_Pin);
+        int LDRReading = analogRead(LDRPIN);
         Serial.print("LDR: ");
         Serial.println(LDRReading);
         sLDR = "LDR: ";
@@ -206,31 +183,60 @@ void handle_command(byte* bCmd, int length)
     }
     break;
     }
-    buttonState = digitalRead(buttonPin);         // variable for reading the pushbutton status
-    if (buttonState == HIGH)
+    bButtonState = digitalRead(BUTTONPIN);         // variable for reading the pushbutton status
+    if (bButtonState == HIGH)
     {     
         // turn LED on:    
-        digitalWrite(ledPin, HIGH);  
+        digitalWrite(LEDPIN, HIGH);  
     }
 }
 
+// SETUP
+void setup()
+{
+    // initialize the LED pin as an output:
+    pinMode(LEDPIN, OUTPUT);      
+    // initialize the pushbutton pin as an input:
+    pinMode(BUTTONPIN, INPUT);   
+    Serial.begin(BAUDRATE);
+    ir_receiver.enableIRIn();
+    Ethernet.begin(mac);
+    Serial.print("server is at ") ;
+    Serial.println(Ethernet.localIP()) ;
+    int connRC = client.connect(CLIENTID) ;
+    if (connRC)
+    {
+        client.publish(OUTTOPIC,"Hi I am the new Arduino!");
+        Serial.print("Arduino published a message to: ") ;
+        Serial.println(OUTTOPIC) ;
+        client.subscribe(INTOPIC) ;
+        Serial.print("Arduino subscribed to: ") ;
+        Serial.println(INTOPIC) ;
+    }
+    else
+    {
+        Serial.println(connRC) ;
+    }
+}
+
+// MAINLOOP
 void loop()
 {
     //LDR
     unsigned long currentMillis = millis();
-    int LDRReading = analogRead(LDR_Pin);
+    LDRReading = analogRead(LDRPIN);
     String sLDR;
     //  if(currentMillis - previousMillis > 5000)
     //  {
     // save the last time LDR been updated
     //previousMillis = currentMillis;
-    if(LDRReading >= 70 && iLightState == LOW)
+    if(LDRReading >= 70 && bLightState == LOW)
     {
         //sLDR = "Light: ON (";
-        iLightState = HIGH;
+        bLightState = HIGH;
         sLDR = "Light: ON (";
         delay(100);
-        LDRReading = analogRead(LDR_Pin);
+        LDRReading = analogRead(LDRPIN);
         sLDR += String(LDRReading);
         sLDR += ")";
         char cLDR[sLDR.length()+1];
@@ -239,13 +245,13 @@ void loop()
         client.publish("MD/LIGHT", cLDR);
         sLDR ="";
     }
-    if(LDRReading <= 70 && iLightState == HIGH)
+    if(LDRReading <= 70 && bLightState == HIGH)
     {
         //sLDR = "Light: OFF (";
-        iLightState = LOW;
+        bLightState = LOW;
         sLDR = "Light: OFF (";
         delay(100);
-        LDRReading = analogRead(LDR_Pin);
+        LDRReading = analogRead(LDRPIN);
         sLDR += String(LDRReading);
         sLDR += ")";
         char cLDR[sLDR.length()+1];
@@ -255,7 +261,6 @@ void loop()
         sLDR ="";
     }
 
-    //}
     if (ir_receiver.decode(&results))
     {
         txt += dump(&results);
@@ -267,15 +272,15 @@ void loop()
         txt = "";
     }
     client.loop();
-    buttonState = digitalRead(buttonPin);
-    if (buttonState == HIGH)
+    bButtonState = digitalRead(BUTTONPIN);
+    if (bButtonState == HIGH)
     {     
     // turn LED on:    
-    digitalWrite(ledPin, HIGH);  
+    digitalWrite(LEDPIN, HIGH);  
     }
     else {
     // turn LED off:
-    digitalWrite(ledPin, LOW); 
+    digitalWrite(LEDPIN, LOW); 
     }
 }
 
