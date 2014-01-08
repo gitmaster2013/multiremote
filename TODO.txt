@@ -1,0 +1,41 @@
+ToDo:
+
+IR:
+- IRMP send + //alternative IP Remote
+- IR Signale Hardcopy ++
+
+Makros:
+- Makro Topic (zeitinvariant) +++ CHECK
+- Markros ausführen CHECK
+- Makros (zeitvariant) ++
+	- Zeit (date +%s)
+
+HMI:
+	- HTML mit CGI ++ CHECK
+	- Web-Seiten optimieren/erweitern
+		- Status
+		- Scripte anzeigen
+		- MQTT-Web-Client
+	- Apps +
+ 
+Struktur:
+	- Code menschenlesbar machen
+		- CR/?0001?0001?NEC?32?16736415 := RGB LED OFF
+
+bestehenden Code optimieren:
+	mqttlogger Topic-Message-Trennung
+	MV mqttlogger_script_record umbenennen
+	Aufnahme der Topics auf "in" begrenzen
+
+Bug-Fixes Arduino-Code
+	LDR-Abfrage implementieren
+	IR-Res. nach Send ermöglichen
+	Reconnect bei IP-Änderung
+	
+neue Funktionen implementieren
+	Funk einbinden und testen
+	Samsung IP Remote
+	IR Hard Copy
+	MQTT Subscribe Liste
+	Arduino MQTT Einstellungen per Webseite in EPROM
+	
