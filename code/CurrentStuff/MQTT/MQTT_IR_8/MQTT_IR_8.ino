@@ -22,7 +22,7 @@ String txt;
 byte mac[]    = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE };
 
 //MQTT definition
-#define MQTTSERVER "david.dyndns.ultrachaos.de"
+#define MQTTSERVER "loki"
 #define CLIENTID "MDArduino"
 #define INTOPIC "MDinTopic"
 #define OUTTOPIC "MDoutTopic"
