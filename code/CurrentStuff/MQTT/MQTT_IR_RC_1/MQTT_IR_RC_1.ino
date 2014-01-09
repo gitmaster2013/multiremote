@@ -50,7 +50,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // Allocate the correct amount of memory for the payload copy
   byte* p = (byte*)malloc(length);
 
-  for (int i=0; i < 42; i++)
+  for (int i=0; i < 60; i++)
   {
     Serial.print(char(topic[i]));
   }
