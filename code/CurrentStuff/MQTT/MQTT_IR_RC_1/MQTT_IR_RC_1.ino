@@ -46,10 +46,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // In order to republish this payload, a copy must be made
   // as the orignal payload buffer will be overwritten whilst
   // constructing the PUBLISH packet.
-  
+
   // Allocate the correct amount of memory for the payload copy
   byte* p = (byte*)malloc(length);
-  
+
   for (int i=0; i < 42; i++)
   {
     Serial.print(char(topic[i]));
@@ -179,5 +179,6 @@ void loop()
 {
   client.loop();
 }
+
 
 
