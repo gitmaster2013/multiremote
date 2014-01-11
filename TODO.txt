@@ -9,6 +9,17 @@ Makros:
 - Markros ausführen CHECK
 - Makros (zeitvariant) ++
 	- Zeit (date +%s)
+	
+Arduino: 
+- Funk
+	einbinden		CHECK
+	testen
+- delete soll-messages after processing
+	(sonst werden die Befehle bei jedem reconnect ausgeführt) 
+- IR Hard Copy
+- Arduino MQTT Einstellungen per Webseite in EPROM
+		siehe multiremote/code/OldStuff/Web_Net_Setup/Web_Net_Setup.pde
+- MQTT Subscribe Liste
 
 HMI:
 	- HTML mit CGI ++ CHECK
@@ -35,12 +46,9 @@ Bug-Fixes Arduino-Code
 	Reconnect bei IP-Änderung	CHECK
 	
 neue Funktionen implementieren
-	Funk
-		einbinden		CHECK
-		testen
+	
 	Samsung IP Remote
-	IR Hard Copy
-	MQTT Subscribe Liste
-	Arduino MQTT Einstellungen per Webseite in EPROM
-		siehe multiremote/code/OldStuff/Web_Net_Setup/Web_Net_Setup.pde
+	
+
+	
 	
