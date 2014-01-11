@@ -34,7 +34,7 @@ IRrecv ir_receiver(IRRECEIVERPIN);
 decode_results results;
 IRsend irsender;
 // Open RC-instance
-RCSwitch Switch = RCSwitch();
+RCSwitch mySwitch = RCSwitch();
 // Open ethernet-instance
 EthernetClient ethClient;
 // Open MQTT-instance
@@ -52,7 +52,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   byte* p = (byte*)malloc(length);
   // Copy the payload to the new buffer
   memcpy(p,payload,length);
-  client.publish(LASTTOPIC, p, length);
+  client.publish(LASTTOPIC, p, length, HIGH);
   handle_command(p,length);
   // Free the memory
   free(p);
@@ -97,6 +97,7 @@ void handle_command(byte* bCmd, int length)
   else
   {
     handle_rc(iParameter1, iParameter2, iParameter3, iParameter5);
+    //void handle_rc(int typ, int group, long value, int state)
   }
 }
 
@@ -173,16 +174,97 @@ void handle_ir(int protocol, int bits, long value, int repeat)
   }
 }
 
-void handle_rc(int protocol, int bits, long value, int repeat)
+void handle_rc(int typ, int group, long value, int state)
 {
-  Serial.print("IR-Befehl: Protocol: ");
-  Serial.print(protocol);
+  Serial.print("RC-Befehl: Protocol: ");
+  Serial.print(typ);
   Serial.print(", Bits: ");
-  Serial.print(bits);
+  Serial.print(group);
   Serial.print(", Value: ");
   Serial.print(value);
-  Serial.print(", Repeat: ");
-  Serial.println(repeat);
+  Serial.print(", State: ");
+  Serial.println(state);
+  switch(typ)
+    // Unterscheidung der Protokolle
+  {
+  case 1:  //TypeA_WithDIPSwitches
+    {
+      // first 5 DIP switches. Example ON-ON-OFF-OFF-ON.
+      // last 5 DIP switches. Example OFF-ON-OFF-ON-OFF. 
+      // 
+      mySwitch.setPulseLength(320);
+      if (state==0)
+      {
+        mySwitch.switchOff("11001", "01010");
+      }
+      else
+      {
+        mySwitch.switchOn("11001", "01010");
+      }
+    }
+    break;
+  case 2:  //TypeB_WithRotaryOrSlidingSwitches
+    {
+      // first rotary switch. Example "1" or "A" or "I". 
+      // second rotary switch. Example "4" or "D" or "IV".
+      // 
+      mySwitch.setPulseLength(320);
+      if (state==0)
+      {
+        mySwitch.switchOff(4, 1);
+      }
+      else
+      {
+        mySwitch.switchOn(4, 1);
+      }
+    }
+    break;
+  case 3:  //TypeC_Intertechno
+    {
+      // first parameter familycode (a, b, c, ... f)
+      // second parameter group number
+      // third parameter device number
+      // For example it's family 'b', group #3, device #2
+      // 
+      mySwitch.setPulseLength(320);
+      if (state==0)
+      {
+        mySwitch.switchOff('b', 3, 2);
+      }
+      else
+      {
+        mySwitch.switchOn('b', 3, 2);
+      }
+    }
+    break;
+  case 4:  //TypeD_REV
+    {
+      // first parameter channel (a, b, c, d)
+      // second parameter device number
+      // For example it's family 'd', device #2
+      //
+      mySwitch.setPulseLength(360);
+      if (state==0)
+      {
+        mySwitch.switchOff('d', 2);
+      }
+      else
+      {
+        mySwitch.switchOn('d', 2);
+      }
+    }
+    break;
+  case 5:  //RAW
+    {
+      //mySwitch.setPulseLength(360);
+    }
+    break;
+  default:
+    {
+      Serial.println("Protokoll nicht gefunden");
+    }
+    break;
+  }
 }
 
 // SETUP
@@ -194,14 +276,14 @@ void setup()
   pinMode(BUTTONPIN, INPUT);   
   Serial.begin(BAUDRATE);
   ir_receiver.enableIRIn();
-  Switch.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2
-  Switch.enableTransmit(8); // Transmitterpindef.
-  Switch.setPulseLength(260);
+  mySwitch.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2
+  mySwitch.enableTransmit(8); // Transmitterpindef.
+  //mySwitch.setPulseLength(260);
   Ethernet.begin(mac);
   Serial.print("server is at ") ;
   Serial.println(Ethernet.localIP()) ;
   if (client.connect(CLIENTID)) {
-    client.publish(OUTTOPIC,"on");
+    client.publish(OUTTOPIC, "on");
     Serial.print("Arduino published a message to: ") ;
     Serial.println(OUTTOPIC) ;
     client.subscribe(IRTOPIC);
@@ -217,6 +299,11 @@ void loop()
 {
   client.loop();
 }
+
+
+
+
+
 
 
 
