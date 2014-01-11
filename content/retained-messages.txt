@@ -1,0 +1,21 @@
+RETAINED:
+MQTT-inspector
+	socket 4
+Arduino (MQTT_IR_RC_2)
+RGB_1
+RGB_2
+
+PHP
+  teufel
+  	- soll Arduino
+  	- ist hifi
+  RGB_1
+    - soll Arduino
+  	- ist rgb_1
+  RGB_2
+    - soll Arduino
+  	- ist rgb_2
+  apple_2
+    - soll Arduino
+  	- ist macbook
+	
