@@ -19,23 +19,28 @@ HMI:
 	- Apps +
  
 Struktur:
+	- implementieren	CHECK
+		- Server/record
 	- Code menschenlesbar machen
 		- CR/?0001?0001?NEC?32?16736415 := RGB LED OFF
 
 bestehenden Code optimieren:
 	mqttlogger Topic-Message-Trennung
-	MV mqttlogger_script_record umbenennen
-	Aufnahme der Topics auf "in" begrenzen
+	MV mqttlogger_script_logger umbenennen	CHECK
+	Aufnahme der Topics auf "soll/#" begrenzen CHECK
 
 Bug-Fixes Arduino-Code
 	LDR-Abfrage implementieren
 	IR-Res. nach Send ermöglichen
-	Reconnect bei IP-Änderung
+	Reconnect bei IP-Änderung	CHECK
 	
 neue Funktionen implementieren
-	Funk einbinden und testen
+	Funk
+		einbinden		CHECK
+		testen
 	Samsung IP Remote
 	IR Hard Copy
 	MQTT Subscribe Liste
 	Arduino MQTT Einstellungen per Webseite in EPROM
+		siehe multiremote/code/OldStuff/Web_Net_Setup/Web_Net_Setup.pde
 	
