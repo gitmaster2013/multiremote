@@ -1,28 +1,22 @@
 ToDo:
 
-IR:
-- IRMP send + //alternative IP Remote
-- IR Signale Hardcopy ++
-
 Makros:
-- Makro Topic (zeitinvariant) +++ CHECK
-- Markros ausführen CHECK
 - Makros (zeitvariant) ++
-	- Zeit (date +%s)
+	- "ist/server/DTIME" returns time between last to messages on "soll/#"
 	
 Arduino: 
 - Funk
-	einbinden		CHECK
 	testen
 - delete soll-messages after processing
 	(sonst werden die Befehle bei jedem reconnect ausgeführt) 
+- LDR-Abfrage implementieren
 - IR Hard Copy
 - Arduino MQTT Einstellungen per Webseite in EPROM
 		siehe multiremote/code/OldStuff/Web_Net_Setup/Web_Net_Setup.pde
 - MQTT Subscribe Liste
+- username/password authorization
 
 HMI:
-	- HTML mit CGI ++ CHECK
 	- Web-Seiten optimieren/erweitern
 		- Status
 		- Scripte anzeigen
@@ -30,23 +24,17 @@ HMI:
 	- Apps +
  
 Struktur:
-	- implementieren	CHECK
-		- Server/record
+	- Server/record / skripte
 	- Code menschenlesbar machen
 		- CR/?0001?0001?NEC?32?16736415 := RGB LED OFF
 
 bestehenden Code optimieren:
 	mqttlogger Topic-Message-Trennung
-	MV mqttlogger_script_logger umbenennen	CHECK
-	Aufnahme der Topics auf "soll/#" begrenzen CHECK
 
 Bug-Fixes Arduino-Code
-	LDR-Abfrage implementieren
 	IR-Res. nach Send ermöglichen
-	Reconnect bei IP-Änderung	CHECK
 	
 neue Funktionen implementieren
-	
 	Samsung IP Remote
 	
 
