@@ -11,6 +11,7 @@ Arduino:
 	(sonst werden die Befehle bei jedem reconnect ausgeführt) 
 - LDR-Abfrage implementieren
 - IR Hard Copy
+- status muss retained gesendet werden
 - Arduino MQTT Einstellungen per Webseite in EPROM
 		siehe multiremote/code/OldStuff/Web_Net_Setup/Web_Net_Setup.pde
 - MQTT Subscribe Liste
