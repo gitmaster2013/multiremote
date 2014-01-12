@@ -70,4 +70,8 @@ MQTT_IR_8:
 	- Lichtwechselerfassung per LDR
 	- DNS-Name instead of static IP
 	- Send IR-Commands via http://david.dyndns.ultrachaos.de
+
+MQTT_IR_RC_4
+	- LastWill hinzugefügt
+		- ist/wohnzimmer/ardunio/status wird off sobald der Broker den Abbruch bemerkt
 	
