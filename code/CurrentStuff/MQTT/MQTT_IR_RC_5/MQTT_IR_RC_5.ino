@@ -50,22 +50,24 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // In order to republish this payload, a copy must be made
   // as the orignal payload buffer will be overwritten whilst
   // constructing the PUBLISH packet.
-  Serial.println("GOT PAYLOAD");
+  
   // Allocate the correct amount of memory for the payload copy
   byte* p = (byte*)malloc(length);
   // Copy the payload to the new buffer
   memcpy(p,payload,length);
   client.publish(LASTTOPIC, p, length, HIGH);
-  handle_command(p,length);
+  handle_command(topic,p,length);
   // Free the memory
   free(p);
 }
 
-void handle_command(byte* bCmd, int length)
+void handle_command(char* topic, byte* bCmd, int length)
 {
   String sCmd;
   String sLDR;
+  String sTopic(topic);
   
+  Serial.println(topic);
   Serial.print("COMMAND: ");
   // Convert Byte to String-Array
   for (int i=0; i < length; i++)
@@ -88,21 +90,23 @@ void handle_command(byte* bCmd, int length)
       if (++ap >= &args[5])
         // ... werden alle mit "?" getrennten Teilstrings als CharArrays gespeichert (5 gibt die Anzahl der Parameter an)
         break;
-  const int iParameter1 = atoi(args[0]);
-  const int iParameter2 = atoi(args[1]);
-  const long lParameter3 = atol(args[2]);
-  const int iParameter4 = atoi(args[3]);
-  const int iParameter5 = atoi(args[4]);
-  if (iParameter4==1)
+        
+	// Select topics and handles
+  if (sTopic.endsWith("/ir"))
   {
-    handle_ir(iParameter1, iParameter2, lParameter3, iParameter5);
-    //handle_ir(int protocol, int bits, long value, int repeat)
+    const int iParameter1 = atoi(args[0]);
+  	const int iParameter2 = atoi(args[1]);
+  	const long lParameter3 = atol(args[2]);
+  	const int iParameter5 = atoi(args[4]);
+  	handle_ir(iParameter1, iParameter2, lParameter3, iParameter5);
   }
-  else
+  else if (sTopic.endsWith("/rc"))
   {
-    handle_rc(iParameter1, iParameter2, lParameter3, iParameter5);
-    //void handle_rc(int typ, int group, long value, int state)
+  	/* RC-INPUTS: 
+  		TYP, FAMILY, GROUP, DEVICE, STATE */
+  	handle_rc(args[0], args[1], args[2], args[3], args[4]);
   }
+  else Serial.println("Topic unknown!");
 }
 
 void handle_ir(int protocol, int bits, long value, int repeat)
@@ -178,31 +182,34 @@ void handle_ir(int protocol, int bits, long value, int repeat)
   }
 }
 
-// Function converts Integer to Char-Array
-// for n bits (generats an array like: "00101")
-char *citocA(int i, int n)
+//** function to handle RC-Commands
+// Input: char-pointer with
+// typ, family-code, group-code, device, state
+// typ must be 1,2,3 or 4
+// state must be 0 or 1
+//** family can be ignaored if not typ 3 
+void handle_rc(char* cTyp, char* cFamily, char* cGroup, char* cDevice, char* cState)
 {
-	char *c[n];
-	for(int z; z<n; z++)
-	{
-		if(bitRead(i,z)) c[z] = "1";
-		else c[z] = "0";
-	}
-	return *c;
-}
+// V.0.4.140114ML
 
-void handle_rc(int typ, int group, long device, int state)
-{
+	// Debug-Info
   Serial.print("RC-Befehl: Protocol: ");
-  Serial.print(typ);
+  Serial.print(cTyp);
+  Serial.print(" Family: ");
+  Serial.print(cFamily);
   Serial.print(", Group: ");
-  Serial.print(group);
+  Serial.print(cGroup);
   Serial.print(", Device: ");
-  Serial.print(device);
+  Serial.print(cDevice);
   Serial.print(", State: ");
-  Serial.println(state);
-  switch(typ)
-    // Unterscheidung der Protokolle
+  Serial.println(cState);
+  
+  // Typcasting and Definitions  
+  const int iTyp = atoi(cTyp);
+  const int iState = atoi(cState);
+  
+  // check for protocoll
+  switch(iTyp)
   {
   case 1:  //TypeA_WithDIPSwitches
     {
@@ -210,34 +217,39 @@ void handle_rc(int typ, int group, long device, int state)
       // last 5 DIP switches. Example OFF-ON-OFF-ON-OFF. 
       // 
       RC.setPulseLength(320);
-      if (state == 0)
+      if (iState == 0)
       {
-        RC.switchOff(citocA(group,5), citocA(device,5));
+        RC.switchOff(cGroup, cDevice);
       }
-      else if (state == 1)
+      else if (iState == 1)
       {
-        RC.switchOn(citocA(group,5), citocA(device,5));
+        RC.switchOn(cGroup, cDevice);
       }
-      else Serial.println("Protokoll nicht gefunden");
+      else Serial.println("Protokoll nicht gefunden - TYP 1");
     }
-    break;
+	break;
   case 2:  //TypeB_WithRotaryOrSlidingSwitches
     {
       // first rotary switch. Example "1" or "A" or "I". 
       // second rotary switch. Example "4" or "D" or "IV".
       // 
+      int iGroup = atoi(cGroup);
+      int iDevice = atoi(cDevice);
       RC.setPulseLength(320);
-      if (state == 0)
+      if (iState == 0)
       {
-        RC.switchOff(group, device);
+        RC.switchOff(iGroup, iDevice);
       }
-      else if (state == 1)
+      else if (iState == 1)
       {
-        RC.switchOn(group, device);
+        RC.switchOn(iGroup, iDevice);
       }
-      else Serial.println("Protokoll nicht gefunden");
+      else Serial.println("Protokoll nicht gefunden - TYP 2");
     }
     break;
+//******
+    	// To be tested
+//*****
   case 3:  //TypeC_Intertechno
     {
       // first parameter familycode (a, b, c, ... f)
@@ -245,34 +257,37 @@ void handle_rc(int typ, int group, long device, int state)
       // third parameter device number
       // For example it's family 'b', group #3, device #2
       // 
+      int iGroup = atoi(cGroup);
+      int iDevice = atoi(cDevice);
       RC.setPulseLength(320);
-      if (state == 0)
+      if (iState == 0)
       {
-        RC.switchOff('b', group, device);
+        RC.switchOff(*cFamily, iGroup, iDevice);
       }
-      else if (state == 1)
+      else if (iState == 1)
       {
-        RC.switchOn('b', group, device);
+        RC.switchOn(*cFamily, iGroup, iDevice);
       }
-      else Serial.println("Protokoll nicht gefunden");
+      else Serial.println("Protokoll nicht gefunden - TYP 3");
     }
     break;
   case 4:  //TypeD_REV
     {
-      // first parameter channel (a, b, c, d)
+      // first parameter group (a, b, c, d)
       // second parameter device number
       // For example it's family 'd', device #2
       //
+      int iDevice = atoi(cDevice);
       RC.setPulseLength(360);
-      if (state  == 0)
+      if (iState == 0)
       {
-        RC.switchOff('d', 2);
+        RC.switchOff(cGroup, iDevice);
       }
-      else if (state == 1)
+      else if (iState == 1)
       {
-        RC.switchOn('d', 2);
+        RC.switchOn(cGroup, iDevice);
       }
-      else Serial.println("Protokoll nicht gefunden");
+      else Serial.println("Protokoll nicht gefunden - TYP 4");
     }
     break;
   case 5:  //RAW
@@ -309,6 +324,7 @@ void startmqtt()
 // SETUP
 void setup()
 {
+	Serial.println("Try to connect to MQTT....");
   // initialize the LED pin as an output:
   pinMode(LEDPIN, OUTPUT);      
   // initialize the pushbutton pin as an input:
@@ -330,8 +346,7 @@ void setup()
 
 void loop()
 {
-  client.loop();
-  if (client.connected()==false)
+  if (!client.loop())
   {
     startmqtt(); 
   }
