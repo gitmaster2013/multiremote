@@ -1,37 +1,26 @@
 ToDo:
 
 	
-Fragen:
-- Funk Status:
-- Skript Struktur
-- username/password authorization (D)
-- IR Hard Copy ?
-- MQTT Subscribe Liste
-		- Per define oder per Topic
-- Einbindung der Lesbarkeit
-
-
- Implementierung der Empfangskanäle (Bug-Fixes Arduino IR-Res. nach Send ermöglichen)
+- Implementierung der Empfangskanäle (Bug-Fixes Arduino IR-Res. nach Send ermöglichen)
 	- 1. RC (M) 
 	- 2. IR (D)
-	- IR Hard Copy ?
 - Arduino:
 	- Status muss retained gesendet werden
 	- MQTT Subscribe Liste
 		- Per define oder per Topic
-	- MQTT Einstellungen per Webseite in EPROM (M)
-		- siehe multiremote/code/OldStuff/Web_Net_Setup/Web_Net_Setup.pde
 - Makros (D)
-	- Einbindung in Struktur
+	- Einbindung in Struktur soll/+/script
 	- "ist/server/DTIME" returns time between last to messages on "soll/#"
 - MQTT Rückmeldung nach der Abarbeitung
-	- Änderung des IST
+	- Änderung des IST /last am Ende von handle statt callback
 		- Arduino (M)
 		- Rest (D)
 	- Löschung der SOLL-messages
 		- Arduino (M)
 		- Rest (D)
+________________________________________________________________
 - Server Code
+	Zuordnungsliste von Geräten und Parametern (intertechno etc/)
 	Optimierung:
 		- mqttlogger Topic-Message-Trennung
 	- Status
@@ -39,8 +28,12 @@ Fragen:
 - Code menschenlesbar machen
 	- CR/?0001?0001?NEC?32?16736415 := RGB LED OFF
 - Neue Funktionen implementieren
+	- IR Hard Copy
 	- LDR-Abfrage implementieren
 	- Samsung IP Remote
 	- MQTT-Web-Client
+	- username/password authorization (D)
 	- Apps
 		-openHab Anbindung?
+- MQTT Einstellungen per Webseite in EPROM (M)
+	- siehe multiremote/code/OldStuff/Web_Net_Setup/Web_Net_Setup.pde
