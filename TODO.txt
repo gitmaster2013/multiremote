@@ -1,43 +1,46 @@
 ToDo:
 
-Makros:
-- Makros (zeitvariant) ++
-	- "ist/server/DTIME" returns time between last to messages on "soll/#"
 	
-Arduino: 
-- Funk
-	testen
-- delete soll-messages after processing
-	(sonst werden die Befehle bei jedem reconnect ausgeführt) 
-- LDR-Abfrage implementieren
-- IR Hard Copy
-- status muss retained gesendet werden
-- Arduino MQTT Einstellungen per Webseite in EPROM
-		siehe multiremote/code/OldStuff/Web_Net_Setup/Web_Net_Setup.pde
+Fragen:
+- Funk Status:
+- Skript Struktur
+- username/password authorization (D)
+- IR Hard Copy ?
 - MQTT Subscribe Liste
-- username/password authorization
+		- Per define oder per Topic
+- Einbindung der Lesbarkeit
 
-HMI:
-	- Web-Seiten optimieren/erweitern
-		- Status
-		- Scripte anzeigen
-		- MQTT-Web-Client
-	- Apps +
- 
-Struktur:
-	- Server/record / skripte
-	- Code menschenlesbar machen
-		- CR/?0001?0001?NEC?32?16736415 := RGB LED OFF
 
-bestehenden Code optimieren:
-	mqttlogger Topic-Message-Trennung
-
-Bug-Fixes Arduino-Code
-	IR-Res. nach Send ermöglichen
-	
-neue Funktionen implementieren
-	Samsung IP Remote
-	
-
-	
-	
+ Implementierung der Empfangskanäle (Bug-Fixes Arduino IR-Res. nach Send ermöglichen)
+	- 1. RC (M) 
+	- 2. IR (D)
+	- IR Hard Copy ?
+- Arduino:
+	- Status muss retained gesendet werden
+	- MQTT Subscribe Liste
+		- Per define oder per Topic
+	- MQTT Einstellungen per Webseite in EPROM (M)
+		- siehe multiremote/code/OldStuff/Web_Net_Setup/Web_Net_Setup.pde
+- Makros (D)
+	- Einbindung in Struktur
+	- "ist/server/DTIME" returns time between last to messages on "soll/#"
+- MQTT Rückmeldung nach der Abarbeitung
+	- Änderung des IST
+		- Arduino (M)
+		- Rest (D)
+	- Löschung der SOLL-messages
+		- Arduino (M)
+		- Rest (D)
+- Server Code
+	Optimierung:
+		- mqttlogger Topic-Message-Trennung
+	- Status
+	- Skripte anzeigen
+- Code menschenlesbar machen
+	- CR/?0001?0001?NEC?32?16736415 := RGB LED OFF
+- Neue Funktionen implementieren
+	- LDR-Abfrage implementieren
+	- Samsung IP Remote
+	- MQTT-Web-Client
+	- Apps
+		-openHab Anbindung?
