@@ -29,7 +29,7 @@
 
 //** GLOBALS
 // Ethernet
-byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE };
+byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAF };
 byte ip[] = {192, 168, 178, 46};
 
 //** INSTANCES
@@ -67,9 +67,8 @@ void handle_command(char* topic, byte* bCmd, int length)
   String sCmd;
   String sLDR;
   String sTopic(topic);
-  
-  Serial.println(topic);
-  Serial.print("COMMAND: ");
+  Serial.println("Topic is: ");
+  Serial.print(topic);
   // Convert Byte to String-Array
   for (int i=0; i < length; i++)
   {
