@@ -30,6 +30,7 @@
 //** GLOBALS
 // Ethernet
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE };
+byte ip[] = {192, 168, 178, 46};
 
 //** INSTANCES
 // Open IR-instances
@@ -337,7 +338,8 @@ void setup()
   RC.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2
   RC.enableTransmit(8); // Transmitterpindef.
   // Init Ethernet
-  Ethernet.begin(mac);
+  Serial.println("Try to get online....");
+  Ethernet.begin(mac, ip);
   Serial.print("Arduino is at ") ;
   Serial.println(Ethernet.localIP()) ;
   // Init MQTT
