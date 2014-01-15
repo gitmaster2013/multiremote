@@ -14,13 +14,13 @@
 #define IRRECEIVERPIN 9
 #define RCSENDPIN 8
 // MQTT-DEFINES
-#define MQTTSERVER "david.dyndns.ultrachaos.de"
-#define CLIENTID "MArduino"
-#define IRTOPIC "soll/matthias/ardunio/ir/#"
-#define RCTOPIC "soll/matthias/ardunio/rc/#"
-#define STATUSTOPIC "ist/matthias/ardunio/status"
-#define LASTTOPIC "ist/matthias/ardunio/last"
-#define WILLTOPIC "ist/matthias/ardunio/status"
+#define MQTTSERVER "loki"
+#define CLIENTID "MDArduino"
+#define IRTOPIC "soll/wohnzimmer/ardunio/ir/#"
+#define RCTOPIC "soll/wohnzimmer/ardunio/rc/#"
+#define STATUSTOPIC "ist/wohnzimmer/ardunio/status"
+#define LASTTOPIC "ist/wohnzimmer/ardunio/last"
+#define WILLTOPIC "ist/wohnzimmer/ardunio/status"
 #define WILLQOS 2
 #define WILLRETAIN 1
 #define WILLMESSAGE "off"
