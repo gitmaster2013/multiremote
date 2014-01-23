@@ -29,7 +29,8 @@
 
 //** GLOBALS
 // Ethernet
-byte mac[] = { 0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE };
+byte mac[] = {  
+  0x90, 0xA2, 0xDA, 0x0E, 0xDB, 0xAE };
 
 //** INSTANCES
 // Open IR-instances
@@ -37,7 +38,7 @@ IRrecv ir_receiver(IRRECEIVERPIN);
 decode_results results;
 IRsend irsender;
 // Open RC-instance
-RCSwitch RC = RCSwitch();
+RCSwitch mySwitch = RCSwitch();
 // Open ethernet-instance
 EthernetClient ethClient;
 // Open MQTT-instance
@@ -50,26 +51,23 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // In order to republish this payload, a copy must be made
   // as the orignal payload buffer will be overwritten whilst
   // constructing the PUBLISH packet.
-  
+
   // Allocate the correct amount of memory for the payload copy
   byte* p = (byte*)malloc(length);
   // Copy the payload to the new buffer
   memcpy(p,payload,length);
   client.publish(LASTTOPIC, p, length, HIGH);
-  handle_command(topic,p,length);
+  handle_command(p,length);
   // Free the memory
   free(p);
 }
 
-void handle_command(char* topic, byte* bCmd, int length)
+void handle_command(byte* bCmd, int length)
 {
   String sCmd;
   String sLDR;
-  String sTopic(topic);
-  
-  Serial.println(topic);
+  // (5 gibt die Anzahl der Parameter an)
   Serial.print("COMMAND: ");
-  // Convert Byte to String-Array
   for (int i=0; i < length; i++)
   {
     sCmd += char(bCmd[i]) ;
@@ -90,23 +88,21 @@ void handle_command(char* topic, byte* bCmd, int length)
       if (++ap >= &args[5])
         // ... werden alle mit "?" getrennten Teilstrings als CharArrays gespeichert (5 gibt die Anzahl der Parameter an)
         break;
-        
-	// Select topics and handles
-  if (sTopic.endsWith("/ir"))
+  const int iParameter1 = atoi(args[0]);
+  const int iParameter2 = atoi(args[1]);
+  const long iParameter3 = atol(args[2]);
+  const int iParameter4 = atoi(args[3]);
+  const int iParameter5 = atoi(args[4]);
+  if (iParameter4==1)
   {
-    const int iParameter1 = atoi(args[0]);
-  	const int iParameter2 = atoi(args[1]);
-  	const long lParameter3 = atol(args[2]);
-  	const int iParameter5 = atoi(args[4]);
-  	handle_ir(iParameter1, iParameter2, lParameter3, iParameter5);
+    handle_ir(iParameter1, iParameter2, iParameter3, iParameter5);
+    //handle_ir(int protocol, int bits, long value, int repeat)
   }
-  else if (sTopic.endsWith("/rc"))
+  else
   {
-  	/* RC-INPUTS: 
-  		TYP, FAMILY, GROUP, DEVICE, STATE */
-  	handle_rc(args[0], args[1], args[2], args[3], args[4]);
+    handle_rc(iParameter1, iParameter2, iParameter3, iParameter5);
+    //void handle_rc(int typ, int group, long value, int state)
   }
-  else Serial.println("Topic unknown!");
 }
 
 void handle_ir(int protocol, int bits, long value, int repeat)
@@ -182,74 +178,51 @@ void handle_ir(int protocol, int bits, long value, int repeat)
   }
 }
 
-//** function to handle RC-Commands
-// Input: char-pointer with
-// typ, family-code, group-code, device, state
-// typ must be 1,2,3 or 4
-// state must be 0 or 1
-//** family can be ignaored if not typ 3 
-void handle_rc(char* cTyp, char* cFamily, char* cGroup, char* cDevice, char* cState)
+void handle_rc(int typ, int group, long value, int state)
 {
-// V.0.4.140114ML
-
-	// Debug-Info
   Serial.print("RC-Befehl: Protocol: ");
-  Serial.print(cTyp);
-  Serial.print(" Family: ");
-  Serial.print(cFamily);
-  Serial.print(", Group: ");
-  Serial.print(cGroup);
-  Serial.print(", Device: ");
-  Serial.print(cDevice);
+  Serial.print(typ);
+  Serial.print(", Bits: ");
+  Serial.print(group);
+  Serial.print(", Value: ");
+  Serial.print(value);
   Serial.print(", State: ");
-  Serial.println(cState);
-  
-  // Typcasting and Definitions  
-  const int iTyp = atoi(cTyp);
-  const int iState = atoi(cState);
-  
-  // check for protocoll
-  switch(iTyp)
+  Serial.println(state);
+  switch(typ)
+    // Unterscheidung der Protokolle
   {
   case 1:  //TypeA_WithDIPSwitches
     {
       // first 5 DIP switches. Example ON-ON-OFF-OFF-ON.
       // last 5 DIP switches. Example OFF-ON-OFF-ON-OFF. 
       // 
-      RC.setPulseLength(320);
-      if (iState == 0)
+      mySwitch.setPulseLength(320);
+      if (state==0)
       {
-        RC.switchOff(cGroup, cDevice);
+        mySwitch.switchOff("11001", "01010");
       }
-      else if (iState == 1)
+      else
       {
-        RC.switchOn(cGroup, cDevice);
+        mySwitch.switchOn("11001", "01010");
       }
-      else Serial.println("Protokoll nicht gefunden - TYP 1");
     }
-	break;
+    break;
   case 2:  //TypeB_WithRotaryOrSlidingSwitches
     {
       // first rotary switch. Example "1" or "A" or "I". 
       // second rotary switch. Example "4" or "D" or "IV".
       // 
-      int iGroup = atoi(cGroup);
-      int iDevice = atoi(cDevice);
-      RC.setPulseLength(320);
-      if (iState == 0)
+      mySwitch.setPulseLength(320);
+      if (state==0)
       {
-        RC.switchOff(iGroup, iDevice);
+        mySwitch.switchOff(4, 1);
       }
-      else if (iState == 1)
+      else
       {
-        RC.switchOn(iGroup, iDevice);
+        mySwitch.switchOn(4, 1);
       }
-      else Serial.println("Protokoll nicht gefunden - TYP 2");
     }
     break;
-//******
-    	// To be tested
-//*****
   case 3:  //TypeC_Intertechno
     {
       // first parameter familycode (a, b, c, ... f)
@@ -257,42 +230,37 @@ void handle_rc(char* cTyp, char* cFamily, char* cGroup, char* cDevice, char* cSt
       // third parameter device number
       // For example it's family 'b', group #3, device #2
       // 
-      int iGroup = atoi(cGroup);
-      int iDevice = atoi(cDevice);
-      RC.setPulseLength(320);
-      if (iState == 0)
+      mySwitch.setPulseLength(320);
+      if (state==0)
       {
-        RC.switchOff(*cFamily, iGroup, iDevice);
+        mySwitch.switchOff('b', 3, 2);
       }
-      else if (iState == 1)
+      else
       {
-        RC.switchOn(*cFamily, iGroup, iDevice);
+        mySwitch.switchOn('b', 3, 2);
       }
-      else Serial.println("Protokoll nicht gefunden - TYP 3");
     }
     break;
   case 4:  //TypeD_REV
     {
-      // first parameter group (a, b, c, d)
+      // first parameter channel (a, b, c, d)
       // second parameter device number
       // For example it's family 'd', device #2
       //
-      int iDevice = atoi(cDevice);
-      RC.setPulseLength(360);
-      if (iState == 0)
+      mySwitch.setPulseLength(360);
+      if (state==0)
       {
-        RC.switchOff(cGroup, iDevice);
+        mySwitch.switchOff('d', 2);
       }
-      else if (iState == 1)
+      else
       {
-        RC.switchOn(cGroup, iDevice);
+        mySwitch.switchOn('d', 2);
       }
-      else Serial.println("Protokoll nicht gefunden - TYP 4");
     }
     break;
   case 5:  //RAW
     {
-      //RC.setPulseLength(360);
+      //mySwitch.setPulseLength(360);
     }
     break;
   default:
@@ -309,7 +277,7 @@ void startmqtt()
   // initialize mqttclient
   if (client.connect(CLIENTID, WILLTOPIC, WILLQOS, WILLRETAIN, WILLMESSAGE))
   {
-    client.publish(STATUSTOPIC, "on");
+    client.publish(STATUSTOPIC, (uint8_t*)"on", sizeof("on"), true);
     Serial.print("Arduino published a message to: ") ;
     Serial.println(STATUSTOPIC) ;
     client.subscribe(IRTOPIC);
@@ -324,29 +292,25 @@ void startmqtt()
 // SETUP
 void setup()
 {
-	Serial.println("Try to connect to MQTT....");
   // initialize the LED pin as an output:
   pinMode(LEDPIN, OUTPUT);      
   // initialize the pushbutton pin as an input:
   pinMode(BUTTONPIN, INPUT);   
-  // Init Serial
   Serial.begin(BAUDRATE);
-  // Init IR
   ir_receiver.enableIRIn();
-  // Init RC
-  RC.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2
-  RC.enableTransmit(8); // Transmitterpindef.
-  // Init Ethernet
+  mySwitch.enableReceive(0);  // Receiver on inerrupt 0 => that is pin #2
+  mySwitch.enableTransmit(8); // Transmitterpindef.
+  //mySwitch.setPulseLength(260);
   Ethernet.begin(mac);
-  Serial.print("Arduino is at ") ;
+  Serial.print("server is at ") ;
   Serial.println(Ethernet.localIP()) ;
-  // Init MQTT
   startmqtt();
 }
 
 void loop()
 {
-  if (!client.loop())
+  client.loop();
+  if (client.connected()==false)
   {
     startmqtt(); 
   }
