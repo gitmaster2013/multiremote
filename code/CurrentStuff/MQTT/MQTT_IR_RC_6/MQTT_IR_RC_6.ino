@@ -315,7 +315,7 @@ void handle_rc(char* cTyp, char* cFamily, char* cGroup, char* cDevice, char* cSt
   }
 }
 
-// SETUP
+// MQTT-SETUP
 void startmqtt()
 {
   // initialize mqttclient
