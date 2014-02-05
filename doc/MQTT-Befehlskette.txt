@@ -1,0 +1,49 @@
+ist/schlafzimmer-david/rgb_1/ir/status/"off"
+			|
+ Wunsch --> |
+			V
+soll/schlafzimmer-david/rgb_1/ir/status/"on"
+			|
+			|  Server Logik
+			V
+soll/schlafzimmer-david/ardunio/ir/befehl/"NEC-32-16769055"
+soll/schlafzimmer-david/ardunio/ir/text/"rgb_1-ir-status-on"
+			|
+			|  Arduino Programm ---> Aktion
+			V
+soll/schlafzimmer-david/ardunio/ir/befehl/"@"
+soll/schlafzimmer-david/ardunio/ir/text/"@"
+			|
+			|  Arduino Programm ---> Quittierung
+			V
+ist/schlafzimmer-david/rgb_1/ir/status/"on"
+
+=====================================================================
+
+ist/schlafzimmer-david/steckdose_1/rc/status/"off"
+			|
+ Wunsch --> |
+			V
+soll/schlafzimmer-david/steckdose_1/rc/status/"on"
+			|
+			|  Server Logik
+			V
+soll/schlafzimmer-david/ardunio/rc/befehl/"DIP-31-31-1"
+soll/schlafzimmer-david/ardunio/rc/text/"steckdose_1-rc-status-on"
+			|
+			|  Arduino Programm ---> Aktion
+			V
+soll/schlafzimmer-david/ardunio/rc/befehl"@"
+soll/schlafzimmer-david/ardunio/rc/text/"@"
+			|
+			|  Arduino Programm ---> Quittierung
+			V
+ist/schlafzimmer-david/steckdose_1/rc/status/"on"
+
+
+SERVER logic
+
+IF ist...=X
+	THEN soll...=Y
+
+
