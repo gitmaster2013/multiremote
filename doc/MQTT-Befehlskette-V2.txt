@@ -1,0 +1,19 @@
+Dezentrale Lösung mit zentraler LookUpTable (keine SD-Karte)
+
+EINGABE:
+soll/schlafzimmer-david/rgb_1/ir/status/"on"  --> NEC-32-16769055
+bzw.
+soll/schlafzimmer-david/ir/rgb_1/status/"on"  --> NEC-32-16769055
+
+VERARBEITUNG:
+Arduino SUB auf soll/schlafzimmer-david/ir/#
+	$BEFEHL=ir/rgb_1/status/"on"
+	soll/server/translate/querry/[XYZ-ir/rgb_1/status/"on"]
+	ist/server/translate/response/[XYZ-NEC-32-16769055]
+		irsender.sendNEC(16769055, 32);
+
+AUSGABE:
+ist/schlafzimmer-david/ir/rgb_1/status/"on"
+	
+
+
